@@ -149,7 +149,7 @@ fileprivate extension WalletFilter {
             .all,
             .currencyOnly,
             .assetsOnly,
-            .collectiblesOnly,
+            // .collectiblesOnly,
         ]
     }
 
@@ -165,8 +165,8 @@ fileprivate extension WalletFilter {
             return R.string.localizable.aWalletContentsFilterCurrencyOnlyTitle()
         case .assetsOnly:
             return R.string.localizable.aWalletContentsFilterAssetsOnlyTitle()
-        case .collectiblesOnly:
-            return R.string.localizable.aWalletContentsFilterCollectiblesOnlyTitle()
+        // case .collectiblesOnly:
+        //     return R.string.localizable.aWalletContentsFilterCollectiblesOnlyTitle()
         case .keyword, .type:
             return ""
         }
