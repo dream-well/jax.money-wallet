@@ -223,7 +223,7 @@
 "browser.addbookmark.button.title" = "Add to My Bookmarks";
 "browser.scanQRCode.button.title" = "Scan QR Code for URL";
 "browser.scanQRCode.title" = "Scan QR Code";
-"browser.tabbar.item.title" = "Browser";
+"browser.tabbar.item.title" = "Exchange";
 "browser.history.confirm.delete.title" = "Remove History?";
 "browser.noHistory.label.title" = "Your browser history appears here.";
 "browser.bookmarks.confirm.delete.title" = "Are you sure you would like to delete this bookmark?";
