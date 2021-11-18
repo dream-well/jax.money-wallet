@@ -181,7 +181,7 @@ class ImportWalletViewController: UIViewController {
         view.addSubview(tabBar)
 
         let stackView = [
-            tabBar,
+            // tabBar,
             .spacer(height: ScreenChecker().isNarrowScreen ? 10 : 30),
             mnemonicControlsStackView,
             keystoreJSONControlsStackView,

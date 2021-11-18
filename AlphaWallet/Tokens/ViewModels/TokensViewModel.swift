@@ -146,9 +146,9 @@ class TokensViewModel {
 fileprivate extension WalletFilter {
     static var orderedTabs: [WalletFilter] {
         return [
-            .all,
+            // .all,
             .currencyOnly,
-            .assetsOnly,
+            // .assetsOnly,
             // .collectiblesOnly,
         ]
     }
