@@ -32,6 +32,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UISplitViewControllerDele
             let navigationController = UINavigationController()
             navigationController.view.backgroundColor = Colors.appWhite
 
+
             appCoordinator = try AppCoordinator(window: window!, analyticsService: analyticsService, keystore: keystore, navigationController: navigationController)
             appCoordinator.start()
 

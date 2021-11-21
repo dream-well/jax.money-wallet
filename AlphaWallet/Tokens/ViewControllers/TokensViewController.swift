@@ -258,6 +258,7 @@ class TokensViewController: UIViewController {
             qrCodeBarButton
         ]
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: blockieImageView)
+        
 
         walletConnectCoordinator.sessionsToURLServersMap.subscribe { [weak self] value in
             guard let strongSelf = self, let sessions = value else { return }
@@ -289,7 +290,7 @@ class TokensViewController: UIViewController {
 
         navigationController?.applyTintAdjustment()
         hidesBottomBarWhenPushed = false
-
+        
         fetch()
         fixNavigationBarAndStatusBarBackgroundColorForiOS13Dot1()
         keyboardChecker.viewWillAppear()
