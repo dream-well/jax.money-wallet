@@ -34,14 +34,13 @@ class ConfigTests: XCTestCase {
         let vc1 = TokensViewController(
                 sessions: sessions,
                 account: .make(),
-                tokenCollection: .init(filterTokensCoordinator: FilterTokensCoordinator(assetDefinitionStore: assetDefinitionStore, tokenActionsService: tokenActionsService, coinTickersFetcher: FakeCoinTickersFetcher()), tokenDataStores: [FakeTokensDataStore()]),
+                tokenCollection: .init(filterTokensCoordinator: FilterTokensCoordinator(assetDefinitionStore: assetDefinitionStore, tokenActionsService: tokenActionsService), tokenDataStores: [FakeTokensDataStore()]),
                 assetDefinitionStore: assetDefinitionStore,
                 eventsDataStore: FakeEventsDataStore(),
-                filterTokensCoordinator: FilterTokensCoordinator(assetDefinitionStore: assetDefinitionStore, tokenActionsService: tokenActionsService, coinTickersFetcher: FakeCoinTickersFetcher()),
+                filterTokensCoordinator: FilterTokensCoordinator(assetDefinitionStore: assetDefinitionStore, tokenActionsService: tokenActionsService),
                 config: .make(),
                 walletConnectCoordinator: .fake(),
-                walletBalanceCoordinator: FakeWalletBalanceCoordinator(),
-                analyticsCoordinator: FakeAnalyticsService()
+                walletBalanceCoordinator: FakeWalletBalanceCoordinator()
         )
         vc1.viewWillAppear(false)
         XCTAssertEqual(vc1.title, "Wallet")
@@ -51,14 +50,13 @@ class ConfigTests: XCTestCase {
         let vc2 = TokensViewController(
                 sessions: sessions,
                 account: .make(),
-                tokenCollection: .init(filterTokensCoordinator: FilterTokensCoordinator(assetDefinitionStore: assetDefinitionStore, tokenActionsService: tokenActionsService, coinTickersFetcher: FakeCoinTickersFetcher()), tokenDataStores: [FakeTokensDataStore()]),
+                tokenCollection: .init(filterTokensCoordinator: FilterTokensCoordinator(assetDefinitionStore: assetDefinitionStore, tokenActionsService: tokenActionsService), tokenDataStores: [FakeTokensDataStore()]),
                 assetDefinitionStore: assetDefinitionStore,
                 eventsDataStore: FakeEventsDataStore(),
-                filterTokensCoordinator: FilterTokensCoordinator(assetDefinitionStore: assetDefinitionStore, tokenActionsService: tokenActionsService, coinTickersFetcher: FakeCoinTickersFetcher()),
+                filterTokensCoordinator: FilterTokensCoordinator(assetDefinitionStore: assetDefinitionStore, tokenActionsService: tokenActionsService),
                 config: .make(),
                 walletConnectCoordinator: .fake(),
-                walletBalanceCoordinator: FakeWalletBalanceCoordinator(),
-                analyticsCoordinator: FakeAnalyticsService()
+                walletBalanceCoordinator: FakeWalletBalanceCoordinator()
         )
         vc2.viewWillAppear(false)
         XCTAssertEqual(vc2.title, "我的钱包")

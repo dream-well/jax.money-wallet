@@ -20,19 +20,14 @@ enum MagicLinkURL {
     static let walletConnectPath = "/wc"
     static let eip681Path = "/ethereum:"
 
-    enum WalletConnectSource {
-        case mobileLinking
-        case safariExtension
-    }
-
     case eip681(URL)
-    case walletConnect(url: WalletConnectURL, source: WalletConnectSource)
+    case walletConnect(WalletConnectURL)
 
     init?(url: URL) {
         if let eip681Url = Self.hasEip681Path(in: url) {
             self  = .eip681(eip681Url)
-        } else if let (wcUrl, source) = Self.functional.hasWalletConnectPath(in: url) {
-            self = .walletConnect(url: wcUrl, source: source)
+        } else if let wcUrl = Self.functional.hasWalletConnectPath(in: url) {
+            self = .walletConnect(wcUrl)
         } else {
             return nil
         }
@@ -61,12 +56,12 @@ extension MagicLinkURL.functional {
     //Multiple formats:
     //From WalletConnect mobile linking: e.g. https://aw.app/wc?uri=wc%3A588422fd-929d-438a-b337-31c3c9184d9b%401%3Fbridge%3Dhttps%253A%252F%252Fbridge.walletconnect.org%26key%3D8f9459f72aed0790282c47fe45f37ed5cb121bc17795f8f2a229a910bc447202
     //From AlphaWallet iOS Safari extension's rewriting: eg. https://aw.app/wc:f607884e-63a5-4fa3-8e7d-af6f6fa9b51f@1?bridge=https%3A%2F%2Fn.bridge.walletconnect.org&key=cff9abba23cb9f843e9d623b891a5f8948b41f7d4afc7f7155aa252504cd8264
-    static func hasWalletConnectPath(in url: URL) -> (url: WalletConnectURL, source: MagicLinkURL.WalletConnectSource)? {
+    static func hasWalletConnectPath(in url: URL) -> WalletConnectURL? {
         guard url.path.starts(with: MagicLinkURL.walletConnectPath) else { return nil }
         if let url = extractWalletConnectUrlFromSafariExtensionRewrittenUrl(url) {
-            return (url, .safariExtension)
+            return url
         } else if let url = extractWalletConnectUrlFromWalletConnectMobileLinking(url) {
-            return (url, .mobileLinking)
+            return url
         } else {
             return nil
         }
@@ -406,15 +401,8 @@ class UniversalLinkCoordinator: Coordinator {
         if let value = MagicLinkURL(url: url) {
             switch value {
             case .eip681(let eip681Url):
-                analyticsCoordinator.log(action: Analytics.Action.tapSafariExtensionRewrittenUrl, properties: [Analytics.Properties.type.rawValue: "eip681"])
                 delegate?.handle(eip681Url: eip681Url, in: self)
-            case .walletConnect(let wcUrl, let source):
-                switch source {
-                case .safariExtension:
-                    analyticsCoordinator.log(action: Analytics.Action.tapSafariExtensionRewrittenUrl, properties: [Analytics.Properties.type.rawValue: "walletConnect"])
-                case .mobileLinking:
-                    break
-                }
+            case .walletConnect(let wcUrl):
                 delegate?.handle(walletConnectUrl: wcUrl, in: self)
             }
             //NOTE: returns false to make sure coordinator wasn't added to list. delegate cases only

@@ -28,37 +28,11 @@ struct TokenHistoryChartViewModel {
     }
 
     var setGradientFill: Fill? {
-        return Fill.fillWithCGColor(UIColor.clear.cgColor)
+        return Fill.fillWithCGColor(Colors.appBackground.cgColor)
     }
 }
 
 class TokenHistoryChartView: UIView {
-
-    private class YMinMaxOnlyAxisValueFormatter: IAxisValueFormatter {
-        //NOTE: helper index for determining right label position
-        private var index: Int = 0
-        private let formatter = NumberFormatter.usd(format: .fiatFormat)
-
-        func stringForValue(_ value: Double, axis: AxisBase?) -> String {
-            guard let axis = axis else { return "" }
-            func formattedString(for value: Double) -> String {
-                return formatter.string(from: value) ?? ""
-            }
-
-            let validEntryIndex = index % axis.entries.count
-            if validEntryIndex == 0 {
-                index += 1
-
-                return formattedString(for: axis.axisMinimum)
-            } else if validEntryIndex == axis.entries.count - 1 {
-                index = 0
-                return formattedString(for: axis.axisMaximum)
-            } else {
-                index += 1
-                return ""
-            }
-        }
-    }
 
     private lazy var chartView: LineChartView = {
         let chartView = LineChartView()
@@ -78,18 +52,7 @@ class TokenHistoryChartView: UIView {
         chartView.xAxis.enabled = false
 
         chartView.leftAxis.enabled = false
-        chartView.rightAxis.enabled = true
-
-        chartView.rightAxis.drawGridLinesEnabled = true
-        chartView.rightAxis.gridColor = .init(red: 220, green: 220, blue: 220)
-        chartView.rightAxis.drawLabelsEnabled = true
-
-        chartView.rightAxis.axisLineColor = .clear
-        chartView.rightAxis.labelAlignment = .center
-        chartView.rightAxis.labelPosition = .insideChart
-
-        chartView.rightAxis.setLabelCount(5, force: true)
-        chartView.rightAxis.valueFormatter = YMinMaxOnlyAxisValueFormatter()
+        chartView.rightAxis.enabled = false
 
         let marker = XYMarkerView(color: Colors.darkGray,
                                   font: Fonts.regular(size: 12),

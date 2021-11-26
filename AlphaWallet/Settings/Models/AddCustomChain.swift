@@ -8,6 +8,7 @@ import PromiseKit
 enum AddCustomChainError: Error {
     case cancelled
     case others(String)
+
     var message: String {
         switch self {
         case .cancelled:
@@ -35,14 +36,14 @@ class AddCustomChain {
     private let isTestnet: Bool
     private let restartQueue: RestartTaskQueue
     private let url: URL?
-    private let operation: SaveOperationType
+
     weak var delegate: AddCustomChainDelegate?
-    init(_ customChain: WalletAddEthereumChainObject, isTestnet: Bool, restartQueue: RestartTaskQueue, url: URL?, operation: SaveOperationType) {
+
+    init(_ customChain: WalletAddEthereumChainObject, isTestnet: Bool, restartQueue: RestartTaskQueue, url: URL?) {
         self.customChain = customChain
         self.isTestnet = isTestnet
         self.restartQueue = restartQueue
         self.url = url
-        self.operation = operation
     }
 
     typealias CustomChainWithChainIdAndRPC = (customChain: WalletAddEthereumChainObject, chainId: Int, rpcUrl: String)
@@ -61,14 +62,12 @@ class AddCustomChain {
             self.customChain = customChain
             return functional.checkExplorerType(customChain).map { (chainId: chainId, rpcUrl: rpcUrl, explorerType: $0) }
         }.then { chainId, rpcUrl, explorerType in
-            self.handleOperation(self.customChain, chainId: chainId, rpcUrl: rpcUrl, etherscanCompatibleType: explorerType)
+            self.queueAddCustomChain(self.customChain, chainId: chainId, rpcUrl: rpcUrl, etherscanCompatibleType: explorerType)
         }.done {
             self.delegate?.notifyAddCustomChainQueuedSuccessfully(in: self)
         }.catch {
             if let error = $0 as? AddCustomChainError {
                 self.delegate?.notifyAddCustomChainFailed(error: error, in: self)
-            } else if case PMKError.cancelled = $0 {
-                //no-op
             } else {
                 self.delegate?.notifyAddCustomChainFailed(error: .others("\(R.string.localizable.addCustomChainErrorUnknown()) — \($0)"), in: self)
             }
@@ -79,25 +78,14 @@ class AddCustomChain {
         guard let delegate = self.delegate else {
             return .init(error: AddCustomChainError.others(R.string.localizable.addCustomChainErrorNoBlockchainExplorerUrl()))
         }
+
         return delegate.notifyAddExplorerApiHostnameFailure(customChain: customChain, chainId: chainId).map { continueWithoutExplorerURL -> CustomChainWithChainIdAndRPC in
-            guard continueWithoutExplorerURL else {
-                throw PMKError.cancelled
-            }
-            if let rpcUrl = customChain.rpcUrls?.first {
+            if let rpcUrl = customChain.rpcUrls?.first, continueWithoutExplorerURL {
                 return (customChain: customChain, chainId: chainId, rpcUrl: rpcUrl)
             } else {
                 throw AddCustomChainError.others(R.string.localizable.addCustomChainErrorNoBlockchainExplorerUrl())
             }
         }
-    }
-
-    private func handleOperation(_ customChain: WalletAddEthereumChainObject, chainId: Int, rpcUrl: String, etherscanCompatibleType: RPCServer.EtherscanCompatibleType) -> Promise<Void> {
-            switch operation {
-            case .add:
-                return self.queueAddCustomChain(customChain, chainId: chainId, rpcUrl: rpcUrl, etherscanCompatibleType: etherscanCompatibleType)
-            case .edit(let originalRpc):
-                return self.queueEditCustomChain(customChain, chainId: chainId, rpcUrl: rpcUrl, etherscanCompatibleType: etherscanCompatibleType, originalRpc: originalRpc)
-             }
     }
 
     private func queueAddCustomChain(_ customChain: WalletAddEthereumChainObject, chainId: Int, rpcUrl: String, etherscanCompatibleType: RPCServer.EtherscanCompatibleType) -> Promise<Void> {
@@ -106,19 +94,6 @@ class AddCustomChain {
             let server = RPCServer.custom(customRpc)
             restartQueue.add(.addServer(customRpc))
             restartQueue.add(.enableServer(server))
-            restartQueue.add(.switchDappServer(server: server))
-            if let url = url {
-                restartQueue.add(.loadUrlInDappBrowser(url))
-            }
-            seal.fulfill(())
-        }
-    }
-
-    private func queueEditCustomChain(_ customChain: WalletAddEthereumChainObject, chainId: Int, rpcUrl: String, etherscanCompatibleType: RPCServer.EtherscanCompatibleType, originalRpc: CustomRPC) -> Promise<Void> {
-        Promise { seal in
-            let newCustomRpc = CustomRPC(customChain: customChain, chainId: chainId, rpcUrl: rpcUrl, etherscanCompatibleType: etherscanCompatibleType, isTestnet: isTestnet)
-            let server = RPCServer.custom(newCustomRpc)
-            restartQueue.add(.editServer(original: originalRpc, edited: newCustomRpc))
             restartQueue.add(.switchDappServer(server: server))
             if let url = url {
                 restartQueue.add(.loadUrlInDappBrowser(url))
@@ -148,12 +123,14 @@ extension AddCustomChain.functional {
             //Not to spec since RPC URLs are optional according to EIP3085, but it is so much easier to assume it's needed, and quite useless if it isn't provided
             return Promise(error: AddCustomChainError.others(R.string.localizable.addCustomChainErrorNoRpcNodeUrl()))
         }
+
         return firstly {
             checkRpcServer(customChain: customChain, chainId: chainId, rpcUrl: rpcUrl)
         }.then { chainId, rpcUrl in
             checkBlockchainExplorerApiHostname(customChain: customChain, chainId: chainId, rpcUrl: rpcUrl)
         }
     }
+
     private static func checkRpcServer(customChain: WalletAddEthereumChainObject, chainId: Int, rpcUrl: String) -> Promise<(chainId: Int, rpcUrl: String)> {
         //Whether the explorer API endpoint is Etherscan or blockscout or testnet or not doesn't matter here
         let customRpc = CustomRPC(customChain: customChain, chainId: chainId, rpcUrl: rpcUrl, etherscanCompatibleType: .unknown, isTestnet: false)
@@ -188,6 +165,7 @@ extension AddCustomChain.functional {
             throw ResolveExplorerApiHostnameError.resolveExplorerApiHostnameFailure
         }
     }
+
     static func checkExplorerType(_ customChain: WalletAddEthereumChainObject) -> Promise<RPCServer.EtherscanCompatibleType> {
         guard let urlString = customChain.blockExplorerUrls?.first else {
             return .value(.unknown)
@@ -211,6 +189,7 @@ extension AddCustomChain.functional {
             return .value(.unknown)
         }
     }
+
     //Figure out if "api." prefix is needed
     private static func figureOutHostname(_ originalUrlString: String) -> Promise<String> {
         if let isPrefixedWithApiDot = URL(string: originalUrlString)?.host?.hasPrefix("api."), isPrefixedWithApiDot {
@@ -220,10 +199,12 @@ extension AddCustomChain.functional {
         let urlString = originalUrlString
                 .replacingOccurrences(of: "https://", with: "https://api.")
                 .replacingOccurrences(of: "http://", with: "http://api.")
+
         //Careful to use `action=tokentx` and not `action=tokennfttx` because only the former works with both Etherscan and Blockscout
         guard let url = URL(string: "\(urlString)/api?module=account&action=tokentx&address=0x007bEe82BDd9e866b2bd114780a47f2261C684E3") else {
             return Promise(error: AddCustomChainError.others(R.string.localizable.addCustomChainErrorInvalidBlockchainExplorerUrl()))
         }
+
         return firstly {
             isValidBlockchainExplorerApiRoot(url)
         }.map {
@@ -240,6 +221,7 @@ extension AddCustomChain.functional {
             }
         }
     }
+
     private static func isValidBlockchainExplorerApiRoot(_ url: URL) -> Promise<Void> {
         firstly {
             Alamofire.request(url, method: .get).responseJSON()

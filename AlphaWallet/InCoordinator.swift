@@ -90,7 +90,7 @@ class InCoordinator: NSObject, Coordinator {
     }()
 
     lazy var filterTokensCoordinator: FilterTokensCoordinator = {
-        return .init(assetDefinitionStore: assetDefinitionStore, tokenActionsService: tokenActionsService, coinTickersFetcher: coinTickersFetcher)
+        return .init(assetDefinitionStore: assetDefinitionStore, tokenActionsService: tokenActionsService)
     }()
 
     private lazy var activitiesService: ActivitiesServiceType = createActivitiesService()
@@ -137,7 +137,7 @@ class InCoordinator: NSObject, Coordinator {
 
     lazy var tabBarController: UITabBarController = {
         let tabBarController = TabBarController()
-        tabBarController.tabBar.isTranslucent = false
+        tabBarController.tabBar.isTranslucent = true
         tabBarController.delegate = self
 
         return tabBarController
@@ -184,8 +184,6 @@ class InCoordinator: NSObject, Coordinator {
     }
 
     func start(animated: Bool) {
-        donateWalletShortcut()
-
         showTabBar(for: wallet, animated: animated)
         checkDevice()
 
@@ -200,10 +198,6 @@ class InCoordinator: NSObject, Coordinator {
         rampBuyService.fetchSupportedTokens()
 
         processRestartQueueAfterRestart(config: config, coordinator: self, restartQueue: restartQueue)
-    }
-
-    private func donateWalletShortcut() {
-        WalletQrCodeDonation(address: wallet.address).donate()
     }
 
     func launchUniversalScanner() {
@@ -362,11 +356,11 @@ class InCoordinator: NSObject, Coordinator {
     }
 
     func showTabBar(animated: Bool) {
-        navigationController.setViewControllers([accountsCoordinator.accountsViewController], animated: false)
-        navigationController.pushViewController(tabBarController, animated: animated)
+        //navigationController.setViewControllers([accountsCoordinator.accountsViewController], animated: false)
+        //navigationController.pushViewController(tabBarController, animated: animated)
 
-        navigationController.setNavigationBarHidden(true, animated: true)
-
+        //navigationController.setNavigationBarHidden(false, animated: true)
+        AppDelegate.sharedInstance().window?.rootViewController = tabBarController
         let inCoordinatorViewModel = InCoordinatorViewModel()
         showTab(inCoordinatorViewModel.initialTab)
 
@@ -405,7 +399,7 @@ class InCoordinator: NSObject, Coordinator {
                 walletBalanceCoordinator: walletBalanceCoordinator
         )
 
-        coordinator.rootViewController.tabBarItem = UITabBarItem(title: R.string.localizable.walletTokensTabbarItemTitle(), image: R.image.tab_wallet(), selectedImage: nil)
+        coordinator.rootViewController.tabBarItem = UITabBarItem(title: R.string.localizable.walletTokensTabbarItemTitle(), image: R.image.tab_wallet(), selectedImage: R.image.tab_wallet_active())
         coordinator.delegate = self
         coordinator.start()
         addCoordinator(coordinator)
@@ -437,7 +431,7 @@ class InCoordinator: NSObject, Coordinator {
     private func createActivityCoordinator(activitiesService: ActivitiesServiceType) -> ActivitiesCoordinator {
         let coordinator = ActivitiesCoordinator(analyticsCoordinator: analyticsCoordinator, sessions: walletSessions, tokensStorages: tokensStorages, assetDefinitionStore: assetDefinitionStore, activitiesService: activitiesService)
         coordinator.delegate = self
-        coordinator.rootViewController.tabBarItem = UITabBarItem(title: R.string.localizable.activityTabbarItemTitle(), image: R.image.tab_transactions(), selectedImage: nil)
+        coordinator.rootViewController.tabBarItem = UITabBarItem(title: R.string.localizable.activityTabbarItemTitle(), image: R.image.tab_transactions(), selectedImage: R.image.tab_transactions_active())
         coordinator.start()
         addCoordinator(coordinator)
         return coordinator
@@ -447,7 +441,7 @@ class InCoordinator: NSObject, Coordinator {
         let coordinator = DappBrowserCoordinator(sessions: sessions, keystore: keystore, config: config, sharedRealm: realm, browserOnly: browserOnly, nativeCryptoCurrencyPrices: nativeCryptoCurrencyPrices, restartQueue: restartQueue, analyticsCoordinator: analyticsCoordinator)
         coordinator.delegate = self
         coordinator.start()
-        coordinator.rootViewController.tabBarItem = UITabBarItem(title: R.string.localizable.browserTabbarItemTitle(), image: R.image.tab_browser(), selectedImage: nil)
+        coordinator.rootViewController.tabBarItem = UITabBarItem(title: R.string.localizable.browserTabbarItemTitle(), image: R.image.tab_browser(), selectedImage: R.image.tab_browser_active())
         addCoordinator(coordinator)
         return coordinator
     }
@@ -463,7 +457,7 @@ class InCoordinator: NSObject, Coordinator {
             walletConnectCoordinator: walletConnectCoordinator,
             walletBalanceCoordinator: walletBalanceCoordinator
         )
-        coordinator.rootViewController.tabBarItem = UITabBarItem(title: R.string.localizable.aSettingsNavigationTitle(), image: R.image.tab_settings(), selectedImage: nil)
+        coordinator.rootViewController.tabBarItem = UITabBarItem(title: R.string.localizable.aSettingsNavigationTitle(), image: R.image.tab_settings(), selectedImage: R.image.tab_settings_active())
         coordinator.delegate = self
         coordinator.start()
         addCoordinator(coordinator)
@@ -708,9 +702,6 @@ class InCoordinator: NSObject, Coordinator {
             case .addServer(let server):
                 restartQueue.remove(each)
                 RPCServer.customRpcs.append(server)
-            case .editServer(let original, let edited):
-                restartQueue.remove(each)
-                replaceServer(original: original, edited: edited)
             case .removeServer(let server):
                 restartQueue.remove(each)
                 removeServer(server)
@@ -727,20 +718,7 @@ class InCoordinator: NSObject, Coordinator {
                 Config.setChainId(server.chainID)
             case .loadUrlInDappBrowser:
                 break
-            case .reloadServers(let servers):
-                restartQueue.remove(each)
-                var c = config
-                c.enabledServers = servers
             }
-        }
-    }
-
-    private func replaceServer(original: CustomRPC, edited: CustomRPC) {
-        RPCServer.customRpcs = RPCServer.customRpcs.map { (item: CustomRPC) -> CustomRPC in
-            if item.chainID == original.chainID {
-                return edited
-            }
-            return item
         }
     }
 
@@ -767,24 +745,13 @@ class InCoordinator: NSObject, Coordinator {
     private func processRestartQueueAfterRestart(config: Config, coordinator: InCoordinator, restartQueue: RestartTaskQueue) {
         for each in restartQueue.queue {
             switch each {
-            case .addServer, .reloadServers, .editServer, .removeServer, .enableServer, .switchDappServer:
+            case .addServer, .removeServer, .enableServer, .switchDappServer:
                 break
             case .loadUrlInDappBrowser(let url):
                 restartQueue.remove(each)
                 coordinator.showTab(.browser)
                 coordinator.dappBrowserCoordinator?.open(url: url, animated: false)
             }
-        }
-    }
-
-    func showWalletQrCode() {
-        showTab(.wallet)
-        if let nc = tabBarController.viewControllers?.first as? UINavigationController, nc.visibleViewController is RequestViewController {
-            //no-op
-        } else if navigationController.visibleViewController is RequestViewController {
-            //no-op
-        } else {
-            showPaymentFlow(for: .request, server: config.anyEnabledServer(), navigationController: navigationController)
         }
     }
 }
@@ -883,7 +850,11 @@ extension InCoordinator: SettingsCoordinatorDelegate {
         TransactionsStorage.deleteAllTransactions(realm: Wallet.functional.realm(forAccount: account))
     }
 
-    func restartToReloadServersQueued(in coordinator: SettingsCoordinator) {
+    func restartToAddEnableAndSwitchBrowserToServer(in coordinator: SettingsCoordinator) {
+        processRestartQueueAndRestartUI()
+    }
+
+    func restartToRemoveServer(in coordinator: SettingsCoordinator) {
         processRestartQueueAndRestartUI()
     }
 }

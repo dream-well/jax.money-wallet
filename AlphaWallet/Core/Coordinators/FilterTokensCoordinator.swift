@@ -10,24 +10,14 @@ import UIKit
 class FilterTokensCoordinator {
     private enum FilterKeys: String {
         case swap
-
-        enum Development: String {
-            //Mainly for development/debugging
-            case fiat
-            case balance = "bal"
-            case fiatAndBalance = "fiat bal"
-            case balanceAndFiat = "bal fiat"
-        }
     }
 
     private let assetDefinitionStore: AssetDefinitionStore
     private let tokenActionsService: TokenActionsServiceType
-    private let coinTickersFetcher: CoinTickersFetcherType
 
-    init(assetDefinitionStore: AssetDefinitionStore, tokenActionsService: TokenActionsServiceType, coinTickersFetcher: CoinTickersFetcherType) {
+    init(assetDefinitionStore: AssetDefinitionStore, tokenActionsService: TokenActionsServiceType) {
         self.assetDefinitionStore = assetDefinitionStore
         self.tokenActionsService = tokenActionsService
-        self.coinTickersFetcher = coinTickersFetcher
     }
 
     func filterTokens(tokens: [TokenObject], filter: WalletFilter) -> [TokenObject] {
@@ -57,12 +47,6 @@ class FilterTokensCoordinator {
                         return $0.type == .erc875
                     } else if lowercasedKeyword == "erc1155" || lowercasedKeyword == "erc 1155" {
                         return $0.type == .erc1155
-                    } else if lowercasedKeyword == FilterKeys.Development.balance.rawValue {
-                        return $0.hasNonZeroBalance
-                    } else if lowercasedKeyword == FilterKeys.Development.fiat.rawValue {
-                        return $0.hasTicker(coinTickersFetcher: coinTickersFetcher)
-                    } else if lowercasedKeyword == FilterKeys.Development.fiatAndBalance.rawValue || lowercasedKeyword == FilterKeys.Development.balanceAndFiat.rawValue {
-                        return $0.hasNonZeroBalance && $0.hasTicker(coinTickersFetcher: coinTickersFetcher)
                     } else if lowercasedKeyword == "tokenscript" {
                         let xmlHandler = XMLHandler(token: $0, assetDefinitionStore: assetDefinitionStore)
                         return xmlHandler.hasNoBaseAssetDefinition && (xmlHandler.server?.matches(server: $0.server) ?? false)
@@ -159,21 +143,5 @@ class FilterTokensCoordinator {
         })
 
         return result
-    }
-}
-
-fileprivate extension TokenObject {
-    var hasNonZeroBalance: Bool {
-        switch type {
-        case .nativeCryptocurrency, .erc20:
-            return !valueBigInt.isZero
-        case .erc875, .erc721, .erc721ForTickets, .erc1155:
-            return !nonZeroBalance.isEmpty
-        }
-    }
-
-    func hasTicker(coinTickersFetcher: CoinTickersFetcherType) -> Bool {
-        let ticker = coinTickersFetcher.ticker(for: addressAndRPCServer)
-        return ticker != nil
     }
 }

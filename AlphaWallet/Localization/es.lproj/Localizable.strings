@@ -92,9 +92,7 @@
 "settings.backupWallet.button.title" = "Hacer una copia de seguridad de este monedero";
 "settings.showSeedPhrase.button.title" = "Show Seed Phrase";
 "settings.walletConnect.button.title" = "WalletConnect";
-"settings.chooseSendPrivateTransactionsProvider.button.title" = "Private ETH transactions";
-"sendPrivateTransactionsProvider.etheremine" = "Ethermine";
-"sendPrivateTransactionsProvider.eden" = "Eden";
+"settings.useEthermineNetwork.button.title" = "Private ETH transactions";
 "settings.language.useSystem.title" = "Usar la configuración del sistema";
 "settings.version.label.title" = "Versión";
 "settings.tokenScriptStandard.title" = "Compatibilidad de TokenScript";
@@ -137,10 +135,11 @@
 "wallets.showSeedPhrase.subtitle2" = "Your seed phrase\n(do not share with anyone)";
 "wallets.showSeedPhrase.hideSeedPhrase" = "OK, hide my seed phrase";
 "wallets.showSeedPhrase.title" = "Tu frase semilla";
-"wallets.showSeedPhrase.subtitle" = "Making backup is very simple and safe:\n just write down 12 words and\n keep them in a secret place, offline.";
+"wallets.showSeedPhrase.subtitle" = "Making backup is very simple and safe:\n just write down 12 words and keep them in a secret place, offline.";
 "wallets.showSeedPhrase.testSeedPhrase" = "Vale, he escrito esto";
 "wallets.showSeedPhrase.doNotTakeScreenshotDescription" = "No es una buena idea hacer una captura de pantalla de la frase semilla";
-"wallets.verifySeedPhrase.title" = "Verificar la frase semilla";
+"wallets.verifySeedPhrase.title" = "Please write down your 12-word Backup Phrase and keep a copy in secure location so you can restore your wallet at anytime.";
+"wallets.verifySeedPhrase.verify" = "Verify";
 "wallets.verifySeedPhrase.wrong" = "Frase semilla no válida. Revísala e inténtalo de nuevo.";
 "wallets.verifySeedPhrase.doNotTakeScreenshotDescription" = "No es una buena idea hacer una captura de pantalla de la frase semilla";
 "wallets.name.rename" = "Rename Wallet";
@@ -659,9 +658,6 @@
 "addrpcServer.chainIdAlreadySupported" = "Already supported. Enable this server instead";
 "addrpcServer.rpcUrl.placeholder" = "New RPC Network";
 "addrpcServer.blockExplorerUrl.placeholder" = "Block Explorer";
-"editCustomRPC.navigation.title" = "Edit Custom RPC Network";
-"editCustomRPC.saveButton.title" = "Save Network";
-"editCustomRPC.chainID.error.duplicate" = "Chain ID already exists";
 "emailList.prompt.title" = "Stay Updated";
 "emailList.prompt.message" = "We send an email announcing major features. Would you like to receive such emails?\n\n(max 1 email per week)";
 "emailList.prompt.subscribeButtonTitle" = "I want to receive such emails";
@@ -715,4 +711,3 @@
 "walletConnect.error.connectionTimeout.title" = "Try WalletConnect again";
 "walletConnect.error.connectionTimeout.errorMessage" = "You tried to connect with WalletConnect.\nWell.. It takes too long. Please generate\na fresh QR code and try again.";
 "walletConnect.scanQRCodeAgain" = "Scan QR Code again";
-"donate.shortcuts.walletQrCode" = "Show Wallet QR Code";

@@ -11,7 +11,6 @@ class LockEnterPasscodeCoordinatorTest: XCTestCase {
         XCTAssertTrue(coordinator.window.isHidden)
         coordinator.start()
         XCTAssertFalse(coordinator.window.isHidden)
-        coordinator.stop()
     }
     func testStop() {
         let viewModel = LockEnterPasscodeViewModel()
@@ -30,6 +29,5 @@ class LockEnterPasscodeCoordinatorTest: XCTestCase {
         XCTAssertTrue(coordinator.window.isHidden)
         coordinator.start()
         XCTAssertTrue(coordinator.window.isHidden)
-        coordinator.stop()
     }
 }

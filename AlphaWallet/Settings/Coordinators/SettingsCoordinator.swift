@@ -18,7 +18,8 @@ protocol SettingsCoordinatorDelegate: class, CanOpenURL {
 	func assetDefinitionsOverrideViewController(for: SettingsCoordinator) -> UIViewController?
     func showConsole(in coordinator: SettingsCoordinator)
 	func delete(account: Wallet, in coordinator: SettingsCoordinator)
-    func restartToReloadServersQueued(in coordinator: SettingsCoordinator)
+    func restartToAddEnableAndSwitchBrowserToServer(in coordinator: SettingsCoordinator)
+    func restartToRemoveServer(in coordinator: SettingsCoordinator)
 }
 
 class SettingsCoordinator: Coordinator {
@@ -33,7 +34,6 @@ class SettingsCoordinator: Coordinator {
 	private var account: Wallet {
 		return sessions.anyValue.account
 	}
-    weak private var advancedSettingsViewController: AdvancedSettingsViewController?
 
 	let navigationController: UINavigationController
 	weak var delegate: SettingsCoordinatorDelegate?
@@ -175,8 +175,8 @@ extension SettingsCoordinator: SettingsViewControllerDelegate {
         let controller = AdvancedSettingsViewController(config: config)
         controller.delegate = self
         controller.hidesBottomBarWhenPushed = true
+
         navigationController.pushViewController(controller, animated: true)
-        advancedSettingsViewController = controller
     }
 }
 
@@ -239,12 +239,34 @@ extension SettingsCoordinator: LocalesCoordinatorDelegate {
 }
 
 extension SettingsCoordinator: EnabledServersCoordinatorDelegate {
+	func didSelectServers(servers: [RPCServer], in coordinator: EnabledServersCoordinator) {
+		//Defensive. Shouldn't allow no server to be selected
+		guard !servers.isEmpty else { return }
 
-    func restartToReloadServersQueued(in coordinator: EnabledServersCoordinator) {
-        delegate?.restartToReloadServersQueued(in: self)
+		let isUnchanged = config.enabledServers.sorted(by: { $0.chainID < $1.chainID }) == servers.sorted(by: { $0.chainID < $1.chainID })
+        if isUnchanged {
+			coordinator.stop()
+			removeCoordinator(coordinator)
+		} else {
+			config.enabledServers = servers
+            restart(for: account, reason: .serverChange)
+		}
+	}
+
+	func didSelectDismiss(in coordinator: EnabledServersCoordinator) {
+		coordinator.stop()
+		removeCoordinator(coordinator)
+	}
+
+    func restartToAddEnableAndSwitchBrowserToServer(in coordinator: EnabledServersCoordinator) {
+        delegate?.restartToAddEnableAndSwitchBrowserToServer(in: self)
         removeCoordinator(coordinator)
     }
 
+    func restartToRemoveServer(in coordinator: EnabledServersCoordinator) {
+        delegate?.restartToRemoveServer(in: self)
+        removeCoordinator(coordinator)
+    }
 }
 
 extension SettingsCoordinator: PromptBackupCoordinatorSubtlePromptDelegate {
@@ -303,17 +325,5 @@ extension SettingsCoordinator: AdvancedSettingsViewControllerDelegate {
 
     func advancedSettingsViewControllerAnalyticsSelected(in controller: AdvancedSettingsViewController) {
 
-    }
-
-    func advancedSettingsViewControllerUsePrivateNetworkSelected(in controller: AdvancedSettingsViewController) {
-        let controller = ChooseSendPrivateTransactionsProviderViewController(config: config)
-        controller.delegate = self
-        navigationController.pushViewController(controller, animated: true)
-    }
-}
-
-extension SettingsCoordinator: ChooseSendPrivateTransactionsProviderViewControllerDelegate {
-    func privateTransactionProviderSelected(provider: SendPrivateTransactionsProvider?, inController viewController: ChooseSendPrivateTransactionsProviderViewController) {
-        advancedSettingsViewController?.configure()
     }
 }

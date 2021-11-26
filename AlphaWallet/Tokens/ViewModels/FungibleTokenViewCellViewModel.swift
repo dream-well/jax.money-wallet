@@ -27,11 +27,11 @@ struct FungibleTokenViewCellViewModel {
     }
 
     var backgroundColor: UIColor {
-        return Screen.TokenCard.Color.background
+        return Colors.clear
     }
 
     var contentsBackgroundColor: UIColor {
-        return Screen.TokenCard.Color.background
+        return Colors.appWhite
     }
 
     var titleAttributedString: NSAttributedString {
@@ -57,14 +57,7 @@ struct FungibleTokenViewCellViewModel {
     }
 
     var apprecationViewModel: ApprecationViewModel {
-        let backgroundColor: UIColor = {
-            if apprecation24hoursAttributedString.string.isEmpty {
-                return .clear
-            } else {
-                return apprecation24hoursBackgroundColor
-            }
-        }()
-        return .init(icon: apprecation24hoursImage, valueAttributedString: apprecation24hoursAttributedString, backgroundColor: backgroundColor)
+        .init(icon: apprecation24hoursImage, valueAttributedString: apprecation24hoursAttributedString, backgroundColor: apprecation24hoursBackgroundColor)
     }
 
     private var apprecation24hoursAttributedString: NSAttributedString {
@@ -75,11 +68,7 @@ struct FungibleTokenViewCellViewModel {
             case .depreciate(let percentageChange24h):
                 return "\(percentageChange24h)%"
             case .none:
-                if priceChangeUSDValue == UiTweaks.noPriceMarker {
-                    return UiTweaks.noPriceMarker
-                } else {
-                    return "-"
-                }
+                return "-"
             }
         }()
 
@@ -102,9 +91,9 @@ struct FungibleTokenViewCellViewModel {
 
     private var priceChangeUSDValue: String {
         if let result = EthCurrencyHelper(ticker: ticker).valueChanged24h(value: token.optionalDecimalValue) {
-            return NumberFormatter.usd(format: .priceChangeFormat).string(from: result) ?? UiTweaks.noPriceMarker
+            return NumberFormatter.usd(format: .priceChangeFormat).string(from: result) ?? "-"
         } else {
-            return UiTweaks.noPriceMarker
+            return "-"
         }
     }
 
@@ -117,9 +106,9 @@ struct FungibleTokenViewCellViewModel {
 
     private var fiatValue: String {
         if let fiatValue = EthCurrencyHelper(ticker: ticker).fiatValue(value: token.optionalDecimalValue) {
-            return NumberFormatter.usd(format: .fiatFormat).string(from: fiatValue) ?? UiTweaks.noPriceMarker
+            return NumberFormatter.usd(format: .fiatFormat).string(from: fiatValue) ?? "-"
         } else {
-            return UiTweaks.noPriceMarker
+            return "-"
         }
     }
 

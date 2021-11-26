@@ -107,19 +107,10 @@ open class EtherKeystore: NSObject, Keystore {
 
     private var analyticsCoordinator: AnalyticsCoordinator
 
-    private var isSimulator: Bool {
-        TARGET_OS_SIMULATOR != 0
-    }
-
     //i.e if passcode is enabled. Face ID/Touch ID wouldn't work without passcode being enabled and we can't write to the keychain or generate a key in secure enclave when passcode is disabled
-    //This original returns true for simulators (due to how simulators work), but on iOS 15 simulator (not on device and not on iOS 12.x and iOS 14 simulators), but writing the seed with user-presence enabled will fail silently and it breaks the app
     var isUserPresenceCheckPossible: Bool {
-        if isSimulator {
-            return false
-        } else {
-            let authContext = LAContext()
-            return authContext.canEvaluatePolicy(.deviceOwnerAuthentication, error: nil)
-        }
+        let authContext = LAContext()
+        return authContext.canEvaluatePolicy(.deviceOwnerAuthentication, error: nil)
     }
 
     var hasWallets: Bool {
@@ -245,7 +236,7 @@ open class EtherKeystore: NSObject, Keystore {
             let mnemonicString = mnemonic.joined(separator: " ")
             let mnemonicIsGood = doesSeedMatchWalletAddress(mnemonic: mnemonicString)
             guard mnemonicIsGood else { return .failure(.failedToCreateWallet) }
-            let wallet = HDWallet(mnemonic: mnemonicString, passphrase: emptyPassphrase)
+            guard let wallet = HDWallet(mnemonic: mnemonicString, passphrase: emptyPassphrase) else { return .failure(.failedToCreateWallet) }
             let privateKey = derivePrivateKeyOfAccount0(fromHdWallet: wallet)
             let address = AlphaWallet.Address(fromPrivateKey: privateKey)
             guard !isAddressAlreadyInWalletsList(address: address) else {
@@ -313,7 +304,7 @@ open class EtherKeystore: NSObject, Keystore {
         let strength = Int32(128)
         var newHdWallet: HDWallet
         repeat {
-            newHdWallet = HDWallet(strength: strength, passphrase: emptyPassphrase)
+            newHdWallet = HDWallet(strength: strength, passphrase: emptyPassphrase)!
             let mnemonicIsGood = doesSeedMatchWalletAddress(mnemonic: newHdWallet.mnemonic)
             if mnemonicIsGood {
                 break
@@ -339,7 +330,7 @@ open class EtherKeystore: NSObject, Keystore {
     //Defensive check. Make sure mnemonic is OK and signs data correctly
     private func doesSeedMatchWalletAddress(mnemonic: String) -> Bool {
         let wallet = HDWallet(mnemonic: mnemonic, passphrase: emptyPassphrase)
-        guard wallet.mnemonic == mnemonic else { return false }
+        guard wallet?.mnemonic == mnemonic else { return false }
         let seed = HDWallet.computeSeedWithChecksum(fromSeedPhrase: mnemonic)
         let walletWhenImported = HDWallet(seed: seed, passphrase: emptyPassphrase)
         //If seed phrase has a typo, the typo will be dropped and "abandon" added as the first word, deriving a different mnemonic silently. We don't want that to happen!
@@ -359,7 +350,7 @@ open class EtherKeystore: NSObject, Keystore {
         let firstAccountIndex = UInt32(0)
         let externalChangeConstant = UInt32(0)
         let addressIndex = UInt32(0)
-        let privateKey = wallet.getKeyBIP44(coin: .ethereum, account: firstAccountIndex, change: externalChangeConstant, address: addressIndex)
+        let privateKey = wallet.getDerivedKey(coin: .ethereum, account: firstAccountIndex, change: externalChangeConstant, address: addressIndex)
         return privateKey.data
     }
 

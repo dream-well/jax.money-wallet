@@ -63,8 +63,7 @@ class TokensCoordinator: Coordinator {
             filterTokensCoordinator: filterTokensCoordinator,
             config: config,
             walletConnectCoordinator: walletConnectCoordinator,
-            walletBalanceCoordinator: walletBalanceCoordinator,
-            analyticsCoordinator: analyticsCoordinator
+            walletBalanceCoordinator: walletBalanceCoordinator
         )
         controller.delegate = self
         return controller
@@ -249,13 +248,7 @@ extension TokensCoordinator: TokensViewControllerDelegate {
     }
 
     func scanQRCodeSelected(in viewController: UIViewController) {
-        if config.shouldReadClipboardForWalletConnectUrl {
-            if let s = UIPasteboard.general.string ?? UIPasteboard.general.url?.absoluteString, let url = WalletConnectURL(s) {
-                walletConnectCoordinator.openSession(url: url)
-            }
-        } else {
-            launchUniversalScanner(fromSource: .walletScreen)
-        }
+        launchUniversalScanner(fromSource: .walletScreen)
     }
 }
 

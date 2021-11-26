@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+    <key>UIUserInterfaceStyle</key>
+    <string>Light</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -58,8 +60,6 @@
 			</array>
 		</dict>
 		<dict>
-			<key>CFBundleURLName</key>
-			<string></string>
 			<key>CFBundleTypeRole</key>
 			<string>WalletConnect Links</string>
 			<key>CFBundleURLSchemes</key>
@@ -90,12 +90,12 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>$(ALPHAWALLET_PRODUCT_NAME) uses the camera to scan QR codes</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>$(ALPHAWALLET_PRODUCT_NAME) might capture audio if a website needs to perform KYC (with your permission)</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Access your wallet</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Location data may be accessed when you are using the in-app browser and tap on a link to retrieve your current location</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>$(ALPHAWALLET_PRODUCT_NAME) might capture audio if a website needs to perform KYC (with your permission)</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Sending QR Code to your contacts</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -132,20 +132,6 @@
 	<array>
 		<string>armv7</string>
 	</array>
-	<key>UIStatusBarHidden</key>
-	<true/>
-	<key>UIStatusBarStyle</key>
-	<string>UIStatusBarStyleDefault</string>
-	<key>UIStatusBarTintParameters</key>
-	<dict>
-		<key>UINavigationBar</key>
-		<dict>
-			<key>Style</key>
-			<string>UIBarStyleDefault</string>
-			<key>Translucent</key>
-			<false/>
-		</dict>
-	</dict>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -158,8 +144,6 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>UIUserInterfaceStyle</key>
-	<string>Light</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>
@@ -182,9 +166,5 @@
 	</array>
 	<key>com.apple.security.get-task-allow</key>
 	<true/>
-	<key>NSUserActivityTypes</key>
-	<array>
-		<string>com.alphawallet.ethereum-wallet-qr-code</string>
-	</array>
 </dict>
 </plist>

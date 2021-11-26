@@ -16,8 +16,8 @@ class AccountsViewController: UIViewController {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.separatorStyle = .singleLine
-        tableView.backgroundColor = GroupedTable.Color.background
+        tableView.separatorStyle = .none
+        tableView.backgroundColor = Colors.appBackground
         tableView.tableFooterView = UIView()
         tableView.rowHeight = UITableView.automaticDimension
         tableView.register(AccountViewCell.self)
@@ -28,7 +28,6 @@ class AccountsViewController: UIViewController {
     private var viewModel: AccountsViewModel
     private let config: Config
     private let keystore: Keystore
-    private let analyticsCoordinator: AnalyticsCoordinator
     weak var delegate: AccountsViewControllerDelegate?
     var allowsAccountDeletion: Bool = false
     var hasWallets: Bool {
@@ -36,15 +35,14 @@ class AccountsViewController: UIViewController {
     }
     private let walletBalanceCoordinator: WalletBalanceCoordinatorType
 
-    init(config: Config, keystore: Keystore, viewModel: AccountsViewModel, walletBalanceCoordinator: WalletBalanceCoordinatorType, analyticsCoordinator: AnalyticsCoordinator) {
+    init(config: Config, keystore: Keystore, viewModel: AccountsViewModel, walletBalanceCoordinator: WalletBalanceCoordinatorType) {
         self.config = config
         self.keystore = keystore
         self.viewModel = viewModel
         self.walletBalanceCoordinator = walletBalanceCoordinator
-        self.analyticsCoordinator = analyticsCoordinator
         super.init(nibName: nil, bundle: nil)
 
-        roundedBackground.backgroundColor = GroupedTable.Color.background
+        roundedBackground.backgroundColor = Colors.appBackground
         roundedBackground.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(roundedBackground)
         roundedBackground.addSubview(tableView)
@@ -64,7 +62,7 @@ class AccountsViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
-        configure(viewModel: .init(keystore: keystore, config: config, configuration: viewModel.configuration, analyticsCoordinator: analyticsCoordinator))
+        configure(viewModel: .init(keystore: keystore, config: config, configuration: viewModel.configuration))
     }
 
     func configure(viewModel: AccountsViewModel) {
@@ -109,7 +107,7 @@ class AccountsViewController: UIViewController {
 
             switch result {
             case .success:
-                strongSelf.configure(viewModel: .init(keystore: strongSelf.keystore, config: strongSelf.config, configuration: strongSelf.viewModel.configuration, analyticsCoordinator: strongSelf.analyticsCoordinator))
+                strongSelf.configure(viewModel: .init(keystore: strongSelf.keystore, config: strongSelf.config, configuration: strongSelf.viewModel.configuration))
                 strongSelf.delegate?.didDeleteAccount(account: account, in: strongSelf)
             case .failure(let error):
                 strongSelf.displayError(error: error)

@@ -36,7 +36,6 @@ enum Analytics {
         case facebook = "Screen: Facebook"
         case github = "Screen: Github"
         case explorer = "Screen: Explorer"
-        case openShortcut = "Screen: Shortcut"
     }
 
     enum Action: String, AnalyticsAction {
@@ -62,9 +61,7 @@ enum Analytics {
         case nameWallet = "Name Wallet"
         case firstWalletAction = "First Wallet Action"
         case addCustomChain = "Add Custom Chain"
-        case editCustomChain = "Edit Custom Chain"
         case subscribeToEmailNewsletter = "Subscribe Email Newsletter"
-        case tapSafariExtensionRewrittenUrl = "Tap Safari Extension Rewritten URL"
     }
 
     enum Properties: String {
@@ -80,7 +77,6 @@ enum Analytics {
         case name
         case messageType
         case isPrivateNetworkEnabled
-        case sendPrivateTransactionsProvider
         case type
         case isAllFunds
         case addCustomChainType
@@ -97,7 +93,6 @@ enum Analytics {
         case keystoreWalletsCount
         case watchedWalletsCount
         case dynamicTypeSetting
-        case hasEnsAvatar
     }
 
     enum ScanQRCodeSource: String {
@@ -172,11 +167,8 @@ enum Analytics {
         case watch
     }
 
-    enum WalletConnectAction: String {
-        case bridgeUrl
-    }
+   enum WalletConnectAction: String {
+       case bridgeUrl
+   }
 
-    enum ShortcutType: String {
-        case walletQrCode
-    }
 }

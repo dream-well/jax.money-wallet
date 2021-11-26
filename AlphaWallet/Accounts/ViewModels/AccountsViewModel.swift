@@ -8,7 +8,6 @@ struct AccountsViewModel {
     private let keystoreWallets: [Wallet]
     private let watchedWallets: [Wallet]
     private let keystore: Keystore
-    private let analyticsCoordinator: AnalyticsCoordinator
 
     var sections: [AccountsSectionType] {
         switch configuration {
@@ -33,11 +32,10 @@ struct AccountsViewModel {
         }
     }
 
-    init(keystore: Keystore, config: Config, configuration: AccountsCoordinatorViewModel.Configuration, analyticsCoordinator: AnalyticsCoordinator) {
+    init(keystore: Keystore, config: Config, configuration: AccountsCoordinatorViewModel.Configuration) {
         self.config = config
         self.keystore = keystore
         self.configuration = configuration
-        self.analyticsCoordinator = analyticsCoordinator
         hdWallets = keystore.wallets.filter { keystore.isHdWallet(wallet: $0) }.sorted { $0.address.eip55String < $1.address.eip55String }
         keystoreWallets = keystore.wallets.filter { keystore.isKeystore(wallet: $0) }.sorted { $0.address.eip55String < $1.address.eip55String }
         watchedWallets = keystore.wallets.filter { keystore.isWatched(wallet: $0) }.sorted { $0.address.eip55String < $1.address.eip55String }
@@ -47,7 +45,7 @@ struct AccountsViewModel {
         guard let account = account(for: indexPath) else { return nil }
         let walletName = self.walletName(forAccount: account)
 
-        return AccountViewModel(wallet: account, current: keystore.currentWallet, walletName: walletName, analyticsCoordinator: analyticsCoordinator)
+        return AccountViewModel(wallet: account, current: keystore.currentWallet, walletName: walletName)
     }
 
     var title: String {
@@ -131,7 +129,7 @@ struct AccountsViewModel {
         case .summary:
             return nil
         }
-    }
+    } 
 
 }
 
