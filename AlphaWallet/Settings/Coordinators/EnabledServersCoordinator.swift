@@ -3,10 +3,7 @@
 import UIKit
 
 protocol EnabledServersCoordinatorDelegate: AnyObject {
-    func didSelectServers(servers: [RPCServer], in coordinator: EnabledServersCoordinator)
-    func didSelectDismiss(in coordinator: EnabledServersCoordinator)
-    func restartToAddEnableAndSwitchBrowserToServer(in coordinator: EnabledServersCoordinator)
-    func restartToRemoveServer(in coordinator: EnabledServersCoordinator)
+    func restartToReloadServersQueued(in coordinator: EnabledServersCoordinator)
 }
 
 class EnabledServersCoordinator: Coordinator {
@@ -46,39 +43,41 @@ class EnabledServersCoordinator: Coordinator {
         navigationController.pushViewController(enabledServersViewController, animated: true)
     }
 
-    func stop() {
-        navigationController.popViewController(animated: true)
-    }
-
     @objc private func addRPCSelected() {
-        let coordinator = AddRPCServerCoordinator(navigationController: navigationController, config: Config(), restartQueue: restartQueue, analyticsCoordinator: analyticsCoordinator)
-        coordinator.delegate = self
+        let coordinator = SaveCustomRpcCoordinator(navigationController: navigationController, config: Config(), restartQueue: restartQueue, analyticsCoordinator: analyticsCoordinator, operation: .add)
         addCoordinator(coordinator)
+        coordinator.delegate = self
+
+        coordinator.start()
+    }
+    
+    private func edit(customRpc: CustomRPC, in viewController: EnabledServersViewController) {
+        let coordinator = SaveCustomRpcCoordinator(navigationController: navigationController, config: Config(), restartQueue: restartQueue, analyticsCoordinator: analyticsCoordinator, operation: .edit(customRpc))
+        addCoordinator(coordinator)
+        coordinator.delegate = self
 
         coordinator.start()
     }
 }
 
 extension EnabledServersCoordinator: EnabledServersViewControllerDelegate {
-    func didSelectServers(servers: [RPCServer], in viewController: EnabledServersViewController) {
-        delegate?.didSelectServers(servers: servers, in: self)
+
+    func notifyReloadServersQueued(in viewController: EnabledServersViewController) {
+        delegate?.restartToReloadServersQueued(in: self)
     }
 
-    func didDismiss(viewController: EnabledServersViewController) {
-        delegate?.didSelectDismiss(in: self)
-    }
-
-    func notifyRemoveCustomChainQueued(in viewController: EnabledServersViewController) {
-        delegate?.restartToRemoveServer(in: self)
+    func didEditSelectedServer(customRpc: CustomRPC, in viewController: EnabledServersViewController) {
+        self.edit(customRpc: customRpc, in: viewController)
     }
 }
 
-extension EnabledServersCoordinator: AddRPCServerCoordinatorDelegate {
-    func didDismiss(in coordinator: AddRPCServerCoordinator) {
+extension EnabledServersCoordinator: SaveCustomRpcCoordinatorDelegate {
+    func didDismiss(in coordinator: SaveCustomRpcCoordinator) {
         removeCoordinator(coordinator)
     }
 
-    func restartToAddEnableAndSwitchBrowserToServer(in coordinator: AddRPCServerCoordinator) {
-        delegate?.restartToAddEnableAndSwitchBrowserToServer(in: self)
+    func restartToEdit(in coordinator: SaveCustomRpcCoordinator) {
+        enabledServersViewController.pushReloadServersIfNeeded()
+        delegate?.restartToReloadServersQueued(in: self)
     }
 }

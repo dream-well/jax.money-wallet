@@ -503,10 +503,16 @@ extension SingleChainTransactionEtherscanDataCoordinator.functional {
 
     static func fetchTransactions(for address: AlphaWallet.Address, startBlock: Int, endBlock: Int = 999_999_999, sortOrder: AlphaWalletService.SortOrder, session: WalletSession, alphaWalletProvider: MoyaProvider<AlphaWalletService>, tokensStorage: TokensDataStore, tokenProvider: TokenProviderType, queue: DispatchQueue) -> Promise<[TransactionInstance]> {
         let target: AlphaWalletService = .getTransactions(config: session.config, server: session.server, address: address, startBlock: startBlock, endBlock: endBlock, sortOrder: sortOrder)
-
         return firstly {
             alphaWalletProvider.request(target)
         }.map(on: queue) { response -> [Promise<TransactionInstance?>] in
+            if response.statusCode == 404 {
+                //Clearer than a JSON deserialization error when it's a 404
+                enum E: Error {
+                    case statusCode404
+                }
+                throw E.statusCode404
+            }
             return try response.map(ArrayResponse<RawTransaction>.self).result.map {
                 TransactionInstance.from(transaction: $0, tokensStorage: tokensStorage, tokenProvider: tokenProvider)
             }
@@ -540,12 +546,9 @@ extension SingleChainTransactionEtherscanDataCoordinator.functional {
 }
 
 func error(value e: Error, pref: String = "", function f: String = #function, rpcServer: RPCServer? = nil, address: AlphaWallet.Address? = nil) {
-
-    var description = "\(f)"
-    description += pref.isEmpty ? "" : " \(pref)"
+    var description = pref
     description += rpcServer.flatMap { " server: \($0)" } ?? ""
     description += address.flatMap { " address: \($0.eip55String)" } ?? ""
     description += " \(e)"
-
-    error(description)
+    error(description, callerFunctionName: f)
 }

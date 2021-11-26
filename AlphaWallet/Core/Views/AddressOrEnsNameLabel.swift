@@ -95,6 +95,7 @@ class AddressOrEnsNameLabel: UILabel {
         textColor = DataEntry.Color.ensText
         font = DataEntry.Font.label
         textAlignment = .center
+        clear()
     }
 
     required init?(coder: NSCoder) {
@@ -117,7 +118,7 @@ class AddressOrEnsNameLabel: UILabel {
             blockieImageView.image = blockieImage
             blockieImageView.isHidden = blockieImage == nil
         }
-    } 
+    }
 
     typealias BlockieAndAddressOrEnsResolution = (image: BlockiesImage?, resolution: AddressOrEnsResolution)
     // NOTE: caching ids for call `func resolve(_ value: String)` function, for verifying activity state
@@ -174,4 +175,4 @@ class AddressOrEnsNameLabel: UILabel {
             self.inResolvingState = false
         }
     }
-} 
+}

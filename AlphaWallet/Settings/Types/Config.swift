@@ -153,24 +153,29 @@ struct Config {
         static let lastFetchedAutoDetectedTransactedTokenErc721BlockNumber = "lastFetchedAutoDetectedTransactedTokenErc721BlockNumber"
         static let lastFetchedAutoDetectedTransactedTokenNonErc20BlockNumber = "lastFetchedAutoDetectedTransactedTokenNonErc20BlockNumber"
         static let walletNames = "walletNames"
+        //We don't write to this key anymore as we support more than 1 service provider. Reading this key only for legacy reasons
         static let usePrivateNetwork = "usePrivateNetworkKey"
+        static let privateNetworkProvider = "privateNetworkProvider"
         static let customRpcServers = "customRpcServers"
         static let homePageURL = "homePageURL"
     }
 
     let defaults: UserDefaults
 
-    var usePrivateNetwork: Bool {
+    var sendPrivateTransactionsProvider: SendPrivateTransactionsProvider? {
         get {
-            guard Features.isUsingPrivateNetwork else { return false }
-
-            return defaults.bool(forKey: Keys.usePrivateNetwork)
+            guard Features.isUsingPrivateNetwork else { return nil }
+            if defaults.bool(forKey: Keys.usePrivateNetwork) {
+                //Default, for legacy reasons
+                return .ethermine
+            } else {
+                let s = defaults.string(forKey: Keys.privateNetworkProvider)
+                return s.flatMap { SendPrivateTransactionsProvider(rawValue: $0) }
+            }
         }
-
         set {
             guard Features.isUsingPrivateNetwork else { return }
-
-            defaults.set(newValue, forKey: Keys.usePrivateNetwork)
+            defaults.set(newValue?.rawValue, forKey: Keys.privateNetworkProvider)
         }
     }
 
@@ -181,7 +186,16 @@ struct Config {
                     //TODO remote log. Why is this possible? Note it's not nil (which is possible for new installs)
                     return Constants.defaultEnabledServers
                 } else {
-                    return chainIds.map { .init(chainID: $0) }.filter { $0.conflictedServer == nil }
+                    let servers: [RPCServer] = chainIds.map { .init(chainID: $0) }.filter { $0.conflictedServer == nil }
+                    //TODO remove filter after some time as every user should have upgraded and no longer has a mix of mainnet and testnet enabled at the same time. We could have done this filtering one-time per wallet outside of here, but doing it here is more localized
+                    if servers.contains(where: { $0.isTestnet }) && servers.contains(where: { !$0.isTestnet }) {
+                        let filteredServers = servers.filter { !$0.isTestnet }
+                        var configForEditing = self
+                        configForEditing.enabledServers = filteredServers
+                        return filteredServers
+                    } else {
+                        return servers
+                    }
                 }
             } else {
                 return Constants.defaultEnabledServers
@@ -235,6 +249,8 @@ struct Config {
     ///Debugging flag. Set to false to disable auto fetching prices, etc to cut down on network calls
     let isAutoFetchingDisabled = false
 
+    let shouldReadClipboardForWalletConnectUrl = false
+
     func addToWalletAddressesAlreadyPromptedForBackup(address: AlphaWallet.Address) {
         var addresses: [String]
         if let value = defaults.array(forKey: Keys.walletAddressesAlreadyPromptedForBackUp) {
@@ -249,7 +265,6 @@ struct Config {
     let oneInch = URL(string: "https://api.1inch.exchange")!
     let honeySwapTokens = URL(string: "https://tokens.honeyswap.org/")!
     let rampAssets = URL(string: "https://api-instant.ramp.network")!
-    let privateRpcUrl = URL(string: "https://rpc.ethermine.org")
 
     func anyEnabledServer() -> RPCServer {
         let servers = enabledServers

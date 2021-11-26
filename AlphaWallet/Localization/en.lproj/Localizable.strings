@@ -92,7 +92,9 @@
 "settings.backupWallet.button.title" = "Back up this Wallet";
 "settings.showSeedPhrase.button.title" = "Show Seed Phrase";
 "settings.walletConnect.button.title" = "WalletConnect";
-"settings.useEthermineNetwork.button.title" = "Private ETH transactions";
+"settings.chooseSendPrivateTransactionsProvider.button.title" = "Private ETH transactions";
+"sendPrivateTransactionsProvider.etheremine" = "Ethermine";
+"sendPrivateTransactionsProvider.eden" = "Eden";
 "settings.language.useSystem.title" = "Use System Setting";
 "settings.version.label.title" = "Version";
 "settings.tokenScriptStandard.title" = "TokenScript Compatibility";
@@ -657,6 +659,9 @@
 "addrpcServer.chainIdAlreadySupported" = "Already supported. Enable this server instead";
 "addrpcServer.rpcUrl.placeholder" = "New RPC Network";
 "addrpcServer.blockExplorerUrl.placeholder" = "Block Explorer";
+"editCustomRPC.navigation.title" = "Edit Custom RPC Network";
+"editCustomRPC.saveButton.title" = "Save Network";
+"editCustomRPC.chainID.error.duplicate" = "Chain ID already exists";
 "emailList.prompt.title" = "Stay Updated";
 "emailList.prompt.message" = "We send an email announcing major features. Would you like to receive such emails?\n\n(max 1 email per week)";
 "emailList.prompt.subscribeButtonTitle" = "I want to receive such emails";
@@ -710,3 +715,4 @@
 "walletConnect.error.connectionTimeout.title" = "Try WalletConnect again";
 "walletConnect.error.connectionTimeout.errorMessage" = "You tried to connect with WalletConnect.\nWell.. It takes too long. Please generate\na fresh QR code and try again.";
 "walletConnect.scanQRCodeAgain" = "Scan QR Code again";
+"donate.shortcuts.walletQrCode" = "Show Wallet QR Code";

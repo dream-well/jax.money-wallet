@@ -90,7 +90,7 @@ class InCoordinator: NSObject, Coordinator {
     }()
 
     lazy var filterTokensCoordinator: FilterTokensCoordinator = {
-        return .init(assetDefinitionStore: assetDefinitionStore, tokenActionsService: tokenActionsService)
+        return .init(assetDefinitionStore: assetDefinitionStore, tokenActionsService: tokenActionsService, coinTickersFetcher: coinTickersFetcher)
     }()
 
     private lazy var activitiesService: ActivitiesServiceType = createActivitiesService()
@@ -184,6 +184,8 @@ class InCoordinator: NSObject, Coordinator {
     }
 
     func start(animated: Bool) {
+        donateWalletShortcut()
+
         showTabBar(for: wallet, animated: animated)
         checkDevice()
 
@@ -198,6 +200,10 @@ class InCoordinator: NSObject, Coordinator {
         rampBuyService.fetchSupportedTokens()
 
         processRestartQueueAfterRestart(config: config, coordinator: self, restartQueue: restartQueue)
+    }
+
+    private func donateWalletShortcut() {
+        WalletQrCodeDonation(address: wallet.address).donate()
     }
 
     func launchUniversalScanner() {
@@ -702,6 +708,9 @@ class InCoordinator: NSObject, Coordinator {
             case .addServer(let server):
                 restartQueue.remove(each)
                 RPCServer.customRpcs.append(server)
+            case .editServer(let original, let edited):
+                restartQueue.remove(each)
+                replaceServer(original: original, edited: edited)
             case .removeServer(let server):
                 restartQueue.remove(each)
                 removeServer(server)
@@ -718,7 +727,20 @@ class InCoordinator: NSObject, Coordinator {
                 Config.setChainId(server.chainID)
             case .loadUrlInDappBrowser:
                 break
+            case .reloadServers(let servers):
+                restartQueue.remove(each)
+                var c = config
+                c.enabledServers = servers
             }
+        }
+    }
+
+    private func replaceServer(original: CustomRPC, edited: CustomRPC) {
+        RPCServer.customRpcs = RPCServer.customRpcs.map { (item: CustomRPC) -> CustomRPC in
+            if item.chainID == original.chainID {
+                return edited
+            }
+            return item
         }
     }
 
@@ -745,13 +767,24 @@ class InCoordinator: NSObject, Coordinator {
     private func processRestartQueueAfterRestart(config: Config, coordinator: InCoordinator, restartQueue: RestartTaskQueue) {
         for each in restartQueue.queue {
             switch each {
-            case .addServer, .removeServer, .enableServer, .switchDappServer:
+            case .addServer, .reloadServers, .editServer, .removeServer, .enableServer, .switchDappServer:
                 break
             case .loadUrlInDappBrowser(let url):
                 restartQueue.remove(each)
                 coordinator.showTab(.browser)
                 coordinator.dappBrowserCoordinator?.open(url: url, animated: false)
             }
+        }
+    }
+
+    func showWalletQrCode() {
+        showTab(.wallet)
+        if let nc = tabBarController.viewControllers?.first as? UINavigationController, nc.visibleViewController is RequestViewController {
+            //no-op
+        } else if navigationController.visibleViewController is RequestViewController {
+            //no-op
+        } else {
+            showPaymentFlow(for: .request, server: config.anyEnabledServer(), navigationController: navigationController)
         }
     }
 }
@@ -850,11 +883,7 @@ extension InCoordinator: SettingsCoordinatorDelegate {
         TransactionsStorage.deleteAllTransactions(realm: Wallet.functional.realm(forAccount: account))
     }
 
-    func restartToAddEnableAndSwitchBrowserToServer(in coordinator: SettingsCoordinator) {
-        processRestartQueueAndRestartUI()
-    }
-
-    func restartToRemoveServer(in coordinator: SettingsCoordinator) {
+    func restartToReloadServersQueued(in coordinator: SettingsCoordinator) {
         processRestartQueueAndRestartUI()
     }
 }
